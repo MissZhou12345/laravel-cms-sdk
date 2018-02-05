@@ -1,6 +1,6 @@
 {
-    "name": "quick-cms/laravel-cms-special",
-    "description": "laravel商品系统-special",
+    "name": "quick-cms/laravel-cms-sdk",
+    "description": "laravel商品系统-sdk",
     "keywords": ["Cms", "laravel cms"],
     "license": "MIT",
     "authors": [
@@ -14,8 +14,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",u
-            "QuickCms\\Special\\": "src/"
+            "App\\": "app/",
+            "QuickCms\\SDK\\": "src/"
         }
     },
     "minimum-stability": "stable",
