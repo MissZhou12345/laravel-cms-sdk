@@ -246,6 +246,7 @@ EOT;
              \$sort   = ['sort' => 'DESC'];
             
              \$cacheKey = 'Cate_list' .md5(json_encode([
+                'system'=>    config('sys.website_key'),
                 'paramsCateKey'=>    '{$paramsCateKey}',
                 'search'=>    \$search,
                 'sort'=>    \$sort,
@@ -332,6 +333,7 @@ EOT;
              }
              
              \$cacheKey = 'article_list' .md5(json_encode([
+                'system'=>    config('sys.website_key'),
                 'search'=>    \$search,
                 'sort'=>    \$sort,
                 'pageSize'=>    \$pageSize,
@@ -396,6 +398,7 @@ EOT;
             
             
              \$cacheKey = 'hot_article_list' .md5(json_encode([
+                'system'=>    config('sys.website_key'),
                 'search'=>    \$search,
                 'sort'=>    \$sort,
                 'limit'=>    \$pageSize,
@@ -481,6 +484,7 @@ EOT;
             \$pageSize = {$limit};
             
             \$cacheKey = 'position_list' .md5(json_encode([
+                'system'=>    config('sys.website_key'),
                 'search'=>  \$search,
                 'sort'=>    \$sort,
                 'limit'=>   \$pageSize,

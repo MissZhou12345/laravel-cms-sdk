@@ -90,6 +90,7 @@ EOT;
              }
              
              \$cacheKey = 'article_list' .md5(json_encode([
+                'system'=>    config('sys.website_key'),
                 'search'=>    \$search,
                 'sort'=>    \$sort,
                 'pageSize'=>    \$pageSize,
