@@ -1,7 +1,6 @@
 <?php
 namespace QuickCms\SDK\Rpc;
 
-use SimpleShop\Commons\Rpc;
 use QuickCms\SDK\Utils\Helpers;
 use JsonRpc\Client;
 

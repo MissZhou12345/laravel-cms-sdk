@@ -39,6 +39,12 @@ abstract class BaseService
 
     protected function call($method, array $params = [])
     {
+        $args = [
+            'system'         => config('sys.website_key'),
+            'auth_resource'  => config('sys.cms_access_key'),
+        ];
+        $header = "restful-params: " . implode(";", $args);
+        $this->rpc->addHeaders($this->client, $header);
         return $this->rpc->call($this->client, $method, $params);
     }
 

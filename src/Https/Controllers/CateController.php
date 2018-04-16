@@ -11,7 +11,7 @@ class CateController extends BaseController
 {
     public function getLists(Request $request, CateService $cateService)
     {
-        $params = ['system' => 'www_aojia'];
+        $params = [];
         $sort   = ['sort' => 'DESC'];
         $ret = $cateService->search($params, $sort);
         return ReturnJson::success($ret);

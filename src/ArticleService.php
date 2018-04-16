@@ -7,4 +7,8 @@ class ArticleService extends BaseService
 
     protected $serviceName = 'article';
 
+    public function getArticleNearby () {
+
+    }
+
 }
