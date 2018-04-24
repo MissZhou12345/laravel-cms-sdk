@@ -8,9 +8,6 @@
 
 namespace QuickCms\SDK\Blade\Ad;
 
-
-use SimpleShop\Commons\Exceptions\Exception;
-
 class Detail
 {
     public static function data($id)
@@ -29,7 +26,7 @@ EOT;
         $bool = $params = json_decode($params, true);
 
         if (! $bool) {
-            throw new Exception('传入的参数不是json字符串');
+            throw new \Exception('传入的参数不是json字符串');
         }
 
         $height = isset($params['height']) ? $params['height'] : 400;

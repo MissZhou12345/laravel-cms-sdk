@@ -59,7 +59,6 @@ class ServiceProvider extends LaravelServiceProvider
         $this->bootPaginate();
         $this->bootHotList();
         $this->bootPosition();
-        $this->bootMeta();
         $this->bootSheJiJia();
         $this->bootBladeExtension();
         $this->bootVisitArticle();
@@ -502,16 +501,6 @@ EOT;
         });
         Blade::directive('endposition', function ($expression) {
             return "<?php endforeach; ?>";
-        });
-    }
-
-    /**
-     * seo META信息
-     */
-    public function bootMeta()
-    {
-        Blade::directive('CmsMeta', function ($expression) {
-            return CmsMeta::html($expression);
         });
     }
 
