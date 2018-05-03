@@ -72,9 +72,9 @@ class Meta
         $templetId = self::_getTempletId($templetId);
         $_pageSEO = static::data($templetId, $params);
 
-        $_pageSEO['title'] = isset($_pageSEO['title']) && $_pageSEO['title'] ? $_pageSEO['title'] : '蚂蚁木匠';
-        $_pageSEO['keywords'] = isset($_pageSEO['keywords']) && $_pageSEO['keywords'] ? $_pageSEO['keywords'] : '蚂蚁木匠';
-        $_pageSEO['description'] = isset($_pageSEO['description']) && $_pageSEO['description'] ? $_pageSEO['description'] : '蚂蚁木匠';
+        $_pageSEO['title'] = isset($_pageSEO['title']) && $_pageSEO['title'] ? $_pageSEO['title'] : '安达人官网';
+        $_pageSEO['keywords'] = isset($_pageSEO['keywords']) && $_pageSEO['keywords'] ? $_pageSEO['keywords'] : '安达人官网';
+        $_pageSEO['description'] = isset($_pageSEO['description']) && $_pageSEO['description'] ? $_pageSEO['description'] : '安达人官网';
 
         $html = <<<EOT
             <meta http-equiv="content-type" charset="text/html;charset=utf-8" />
