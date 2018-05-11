@@ -48,6 +48,12 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function boot()
     {
+        if (! $this->app->routesAreCached()) {
+            require __DIR__.'/../routes/routes.php';
+        }
+
+        $this->addMiddlewareAlias('rate', \QuickCms\SDK\Https\Middleware\RateMiddleware::class);
+
         $this->setupConfig($this->app);
         //$this->setupMigrations($this->app);
         $this->bootCateList();
@@ -63,6 +69,30 @@ class ServiceProvider extends LaravelServiceProvider
         $this->bootBladeExtension();
         $this->bootVisitArticle();
     }
+
+
+
+    /**
+     * Register a short-hand name for a middleware. For compatibility
+     * with Laravel < 5.4 check if aliasMiddleware exists since this
+     * method has been renamed.
+     *
+     * @param string $name
+     * @param string $class
+     *
+     * @return void
+     */
+    protected function addMiddlewareAlias($name, $class)
+    {
+        $router = $this->app['router'];
+
+        if (method_exists($router, 'aliasMiddleware')) {
+            return $router->aliasMiddleware($name, $class);
+        }
+
+        return $router->middleware($name, $class);
+    }
+
 
     public function bootBladeExtension()
     {
