@@ -48,8 +48,8 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function boot()
     {
-        if (! $this->app->routesAreCached()) {
-            require __DIR__.'/../routes/routes.php';
+        if (!$this->app->routesAreCached()) {
+            require __DIR__ . '/../routes/routes.php';
         }
 
         $this->addMiddlewareAlias('rate', \QuickCms\SDK\Https\Middleware\RateMiddleware::class);
@@ -69,7 +69,6 @@ class ServiceProvider extends LaravelServiceProvider
         $this->bootBladeExtension();
         $this->bootVisitArticle();
     }
-
 
 
     /**
@@ -200,22 +199,36 @@ class ServiceProvider extends LaravelServiceProvider
             $paramsModelId = isset($params['model_id']) ? $params['model_id'] : '';
             $paramsAttrKey = isset($params['attr_key']) ? $params['attr_key'] : '';
 
+            $cacheKey = 'cmsSdk' . 'ShejijiaStyle' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
             return <<< EOT
             <?php
-             \$__cate = \App::make('QuickCms\SDK\CateService');
-             \$__CaseStyleLists = \$__cate->getRoomCaseStyle('{$paramsModelId}', '{$paramsAttrKey}');
-             \$__cateCaseStyleLists=[];
-             foreach(\$__CaseStyleLists as \$style){
-                \$__cateCaseStyleLists[\$style->value]=\$style;
-             }
-             foreach (\$__cateCaseStyleLists  as \$key=>\$item) :
+            \$__cateCaseStyleLists = \Cache::remember('{$cacheKey}', {$minutes}, function () {
+            
+                \$__CaseStyleLists = \App::make('QuickCms\SDK\CateService')->getRoomCaseStyle('{$paramsModelId}', '{$paramsAttrKey}');
+                \$__cateCaseStyleLists=[];
+                foreach(\$__CaseStyleLists as \$style){
+                    \$__cateCaseStyleLists[\$style->value]=\$style;
+                }
+
+                return \$__cateCaseStyleLists;
+            });
+            foreach (\$__cateCaseStyleLists  as \$key=>\$item) :
             ?>
 EOT;
+
         });
+
+
         Blade::directive('EndShejijiaStyle', function ($expression) {
             return "<?php endforeach; ?>";
         });
         //------------------------------end获取风格----------------------------------------
+
 
         //------------------------------获取楼盘----------------------------------------
         Blade::directive('ShejijiaHouseName', function ($expression) {
@@ -236,14 +249,24 @@ EOT;
             $paramsAttrKey = isset($params['attr_key']) ? $params['attr_key'] : '';
             $limit = intval($params['limit']) ? intval($params['limit']) : 20;
 
+            $cacheKey = 'cmsSdk' . 'ShejijiaHouseName' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
             return <<< EOT
             <?php
-             \$__cate = \App::make('QuickCms\SDK\CateService');
-             \$__cateHouseNameLists = \$__cate->getHouseName('{$paramsModelId}', '{$paramsAttrKey}', $limit);
-             foreach (\$__cateHouseNameLists  as \$key=>\$item) :
+            \$__cateHouseNameLists = \Cache::remember('{$cacheKey}', {$minutes}, function () {
+                return \App::make('QuickCms\SDK\CateService')->getHouseName('{$paramsModelId}', '{$paramsAttrKey}', {$limit});
+            });
+            foreach (\$__cateHouseNameLists  as \$key=>\$item) :
             ?>
 EOT;
+
         });
+
+
         Blade::directive('EndShejijiaHouseName', function ($expression) {
             return "<?php endforeach; ?>";
         });
@@ -264,34 +287,30 @@ EOT;
             $paramsCateKey = isset($params['cate_key']) ? $params['cate_key'] : '';
             $limit = intval($params['limit']) ? intval($params['limit']) : 20;
 
+            $cacheKey = 'cmsSdk' . 'CateList' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
             return <<< EOT
             <?php
-             \$search = [];
-             \$search['display'] = 1;
-             
-             \$page = request()->input('page',1);
-             \$pageSize = {$limit};
-             \$columns = ['*'];
-             \$sort   = ['sort' => 'DESC'];
+            \$search = [];
+            \$search['display'] = 1;
             
-             \$cacheKey = 'Cate_list' .md5(json_encode([
-                'system'=>    config('sys.website_key'),
-                'paramsCateKey'=>    '{$paramsCateKey}',
-                'search'=>    \$search,
-                'sort'=>    \$sort,
-                'limit'=>    \$pageSize,
-                'columns'=>    \$columns,
-             ]));
-             
-             \$__cateaLists = \Cache::get(\$cacheKey);
-             if(!\$__cateaLists){
-                 \$__cateaLists = \App::make(\QuickCms\SDK\CateService::class)->searchByKey('{$paramsCateKey}', \$search, \$sort, \$pageSize, \$columns);
-                 \Cache::put(\$cacheKey, \$__cateaLists, 120);
-             }
-             
-             foreach (\$__cateaLists->data  as \$key=>\$item) :
+            \$page = request()->input('page',1);
+            \$pageSize = {$limit};
+            \$columns = ['*'];
+            \$sort   = ['sort' => 'DESC'];
+            
+            \$__cateaLists = \Cache::remember('{$cacheKey}', {$minutes}, function () use(\$search, \$sort, \$pageSize, \$columns) {
+                return \App::make(\QuickCms\SDK\CateService::class)->searchByKey('{$paramsCateKey}', \$search, \$sort, \$pageSize, \$columns);
+            });
+            
+            foreach (\$__cateaLists->data  as \$key=>\$item) :
             ?>
 EOT;
+
         });
         Blade::directive('EndCate', function ($expression) {
             return "<?php endforeach; ?>";
@@ -321,10 +340,11 @@ EOT;
                 throw new Exception('[ArticleList]传入的参数不是json字符串');
             }
 
-            $sort = isset($params['sort']) ? $params['sort'] : '';
             $modelKey = isset($params['modelKey']) ? $params['modelKey'] : '';
             $cateKey = isset($params['cateKey']) ? $params['cateKey'] : '';
             $limit = intval($params['limit']) ? intval($params['limit']) : 20;
+
+            $minutes = 120;
 
             return <<<EOT
             <?php
@@ -348,37 +368,32 @@ EOT;
                 \$search['cateKey'] = '{$cateKey}';
              }
              
-             \$cateKey = isset(\$search['cateKey'])?\$search['cateKey']:null;
-             if(\$cateKey){
-                // 传入分类key
-                \$__cate = \App::make('QuickCms\SDK\CateService');
-                \$__cateDetail = \$__cate->detail(\$cateKey);
-                \$search['cate_id'] = \$__cateDetail->id;
-             }
              
-             if(!isset(\$search['cate_id'])){
-                // 推荐---的排序
-                \$sort = ['hot' => 'DESC'];
-             }
+            \$cacheKey = 'cmsSdk' . 'ArticleList' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => json_encode(\$search),
+                    'page' => request()->input('page', 1),
+                ]));
              
-             \$cacheKey = 'article_list' .md5(json_encode([
-                'system'=>    config('sys.website_key'),
-                'search'=>    \$search,
-                'sort'=>    \$sort,
-                'pageSize'=>    \$pageSize,
-                'columns'=>    \$columns,
-                'page'=>    \$page,
-             ]));
-             
-             \$__articleLists = \Cache::get(\$cacheKey);
-             if(!\$__articleLists){
-                 \$__articleLists = \App::make('QuickCms\SDK\ArticleService')->search(\$search, \$sort, \$pageSize, \$columns, \$page);
-                 \Cache::put(\$cacheKey, \$__articleLists, 120);
-             }
+             \$__articleLists = \Cache::remember(\$cacheKey, {$minutes}, function () use(\$search,\$sort,\$columns,\$pageSize,\$page) {
+                 \$cateKey = isset(\$search['cateKey'])?\$search['cateKey']:null;
+                 if(\$cateKey){
+                    // 传入分类key
+                    \$search['cate_id'] = \App::make('QuickCms\SDK\CateService')->detail(\$cateKey)->id;
+                 }
+                 
+                 if(!isset(\$search['cate_id'])){
+                    // 推荐---的排序
+                    \$sort = ['hot' => 'DESC'];
+                 }
+                 
+                 return \App::make('QuickCms\SDK\ArticleService')->search(\$search, \$sort, \$pageSize, \$columns, \$page);
+            });
              
              foreach (\$__articleLists->data  as \$key=>\$item) :
             ?>
 EOT;
+
         });
 
 
@@ -418,6 +433,12 @@ EOT;
             $model_id = $params['model_id'];
             $limit = isset($params['limit']) ? intval($params['limit']) : 5;
 
+            $cacheKey = 'cmsSdk' . 'HotList' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
             return <<< EOT
             <?php
             \$search = ['status' => 1, 'model_id' => '{$model_id}'];
@@ -425,23 +446,14 @@ EOT;
             \$columns = ['*'];
             \$pageSize = {$limit};
             
-            
-             \$cacheKey = 'hot_article_list' .md5(json_encode([
-                'system'=>    config('sys.website_key'),
-                'search'=>    \$search,
-                'sort'=>    \$sort,
-                'limit'=>    \$pageSize,
-             ]));
+            \$__articleHotLists = \Cache::remember('{$cacheKey}', {$minutes}, function () use(\$search, \$sort, \$pageSize, \$columns) {
+                 return \App::make(\QuickCms\SDK\ArticleService::class)->search(\$search, \$sort, \$pageSize, \$columns, 1);
+            });
              
-            \$__articleHotLists = \Cache::get(\$cacheKey);
-             if(!\$__articleHotLists){
-                \$__articleHotLists = \App::make(\QuickCms\SDK\ArticleService::class)->search(\$search, \$sort, \$pageSize, \$columns, 1);
-                \Cache::put(\$cacheKey, \$__articleHotLists, 120);
-             }
-            
-             foreach (\$__articleHotLists->data as \$key=>\$item) :
+            foreach (\$__articleHotLists->data as \$key=>\$item) :
             ?>
 EOT;
+
         });
         Blade::directive('EndHotList', function ($expression) {
             return "<?php endforeach; ?>";
@@ -452,7 +464,15 @@ EOT;
     public function bootAd()
     {
         Blade::directive('banner', function ($expression) {
-            return AdDetail::html($expression);
+            $cacheKey = 'cmsSdk' . 'Banner' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
+            return \Cache::remember($cacheKey, $minutes, function () use ($expression) {
+                return AdDetail::html($expression);
+            });
         });
     }
 
@@ -473,12 +493,21 @@ EOT;
             $system = config('sys.website_key');
             $limit = isset($params['limit']) ? intval($params['limit']) : 5;
 
+            $cacheKey = 'cmsSdk' . 'BannerList' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
+
             return <<< EOT
             <?php
-             \$__adSpaceList = app(\QuickCms\SDK\AdService::class)->getList(['adspace_c_key'=>'{$adSpaceKey}','system'=>'{$system}'],['sort'=>'DESC'],{$limit});
+            \$__adSpaceList = \Cache::remember('{$cacheKey}', {$minutes}, function () {
+                 return app(\QuickCms\SDK\AdService::class)->getList(['adspace_c_key'=>'{$adSpaceKey}','system'=>'{$system}'],['sort'=>'DESC'],{$limit});
+            });
              foreach (\$__adSpaceList->data  as \$key=>\$item) :
             ?>
 EOT;
+
         });
         Blade::directive('EndBannerList', function ($expression) {
             return "<?php endforeach; ?>";
@@ -502,9 +531,14 @@ EOT;
                 throw new Exception('【position_key】参数未传入.');
             }
 
-
             $positionKey = $params['position_key'];
             $limit = intval($params['limit']) ? intval($params['limit']) : 5;
+
+            $cacheKey = 'cmsSdk' . 'PositionList' . md5(json_encode([
+                    'system' => config('sys.website_key'),
+                    'search' => $expression,
+                ]));
+            $minutes = 120;
 
             return <<< EOT
             <?php
@@ -512,22 +546,15 @@ EOT;
             \$sort = ['sort'=>'DESC'];
             \$pageSize = {$limit};
             
-            \$cacheKey = 'position_list' .md5(json_encode([
-                'system'=>    config('sys.website_key'),
-                'search'=>  \$search,
-                'sort'=>    \$sort,
-                'limit'=>   \$pageSize,
-            ]));
-            
-            \$__positionList = \Cache::get(\$cacheKey);
-            if(!\$__positionList){
-                \$__positionList = \App::make(\QuickCms\SDK\PositionService::class)->searchByKey(\$search,\$sort,\$pageSize);
-                \Cache::put(\$cacheKey, \$__positionList, 120);
-            }
+            \$__positionList = \Cache::remember('{$cacheKey}', {$minutes}, function () use(\$search,\$sort,\$pageSize) {
+                 return \App::make(\QuickCms\SDK\PositionService::class)->searchByKey(\$search,\$sort,\$pageSize);
+            });
             
             foreach (\$__positionList->data  as \$key=>\$item) :
             ?>
 EOT;
+
+
         });
         Blade::directive('endposition', function ($expression) {
             return "<?php endforeach; ?>";

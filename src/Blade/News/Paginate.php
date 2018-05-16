@@ -57,6 +57,14 @@ EOT;
         $modelKey = isset($params['modelKey']) ? $params['modelKey'] : '';
         $cateKey = isset($params['cateKey']) ? $params['cateKey'] : '';
         $limit = intval($params['limit']) ? intval($params['limit']) : 20;
+
+        $cacheKey = 'cmsSdk' . 'PaginateNews' . md5(json_encode([
+                'system' => config('sys.website_key'),
+                'search' => $expression,
+                'page' => request()->input('page', 1),
+            ]));
+        $minutes = 120;
+
         return <<< EOT
             <?php
              \$param=request()->route()->parameters();
@@ -76,33 +84,23 @@ EOT;
                 \$search['cateKey'] = '{$cateKey}';
              }
              
-             \$cateKey = isset(\$search['cateKey'])?\$search['cateKey']:null;
-             if(\$cateKey){
-                // 传入分类key
-                \$__cate = \App::make('QuickCms\SDK\CateService');
-                \$__cateDetail = \$__cate->detail(\$cateKey);
-                \$search['cate_id'] = \$__cateDetail->id;
-             }
-             
-             if(!isset(\$search['cate_id'])){
-                // 推荐---的排序
-                \$sort = ['hot' => 'ASC'];
-             }
-             
-             \$cacheKey = 'article_list' .md5(json_encode([
-                'system'=>    config('sys.website_key'),
-                'search'=>    \$search,
-                'sort'=>    \$sort,
-                'pageSize'=>    \$pageSize,
-                'columns'=>    \$columns,
-                'page'=>    \$page,
-             ]));
-             
-             \$__articleLists = \Cache::get(\$cacheKey);
-             if(!\$__articleLists){
-                 \$__articleLists = \App::make('QuickCms\SDK\ArticleService')->search(\$search, \$sort, \$pageSize, \$columns, \$page);
-             }
+             \$__articleLists = \Cache::remember('{$cacheKey}', {$minutes}, function () use(\$search,\$sort,\$columns,\$pageSize,\$page) {
+                 \$cateKey = isset(\$search['cateKey'])?\$search['cateKey']:null;
+                 if(\$cateKey){
+                    // 传入分类key
+                    \$search['cate_id'] = \App::make('QuickCms\SDK\CateService')->detail(\$cateKey)->id;
+                 }
+                 
+                 if(!isset(\$search['cate_id'])){
+                    // 推荐---的排序
+                    \$sort = ['hot' => 'DESC'];
+                 }
+                 
+                 return \App::make('QuickCms\SDK\ArticleService')->search(\$search, \$sort, \$pageSize, \$columns, \$page);
+            });
             ?>
 EOT;
+
+
     }
 }
