@@ -63,7 +63,7 @@ EOT;
                 'search' => $expression,
                 'page' => request()->input('page', 1),
             ]));
-        $minutes = 120;
+        $minutes = config('sys.cms_sdk_cache_time');
 
         return <<< EOT
             <?php

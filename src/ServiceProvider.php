@@ -203,7 +203,7 @@ class ServiceProvider extends LaravelServiceProvider
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php
@@ -253,7 +253,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php
@@ -291,7 +291,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php
@@ -344,7 +344,7 @@ EOT;
             $cateKey = isset($params['cateKey']) ? $params['cateKey'] : '';
             $limit = intval($params['limit']) ? intval($params['limit']) : 20;
 
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<<EOT
             <?php
@@ -437,7 +437,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php
@@ -468,7 +468,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return \Cache::remember($cacheKey, $minutes, function () use ($expression) {
                 return AdDetail::html($expression);
@@ -497,7 +497,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php
@@ -538,7 +538,7 @@ EOT;
                     'system' => config('sys.website_key'),
                     'search' => $expression,
                 ]));
-            $minutes = 120;
+            $minutes = config('sys.cms_sdk_cache_time');
 
             return <<< EOT
             <?php

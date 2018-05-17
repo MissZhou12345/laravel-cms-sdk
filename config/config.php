@@ -6,4 +6,8 @@ return [
 
     'cms_access_key'  => env('CMS_ACCESS_KEY', ''),
 
+    'cms_sdk_cache_time'  => env('CMS_SDK_CACHE_TIME', 10),
+
 ];
+
+
